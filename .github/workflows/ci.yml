@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all --release --locked
+
+      - name: Smoke test (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VAULT_DIR="$(mktemp -d)"
+          VAULT_FILE="$VAULT_DIR/vault.json"
+          export RUSTY_VAULT_MASTER_PASSWORD="test-master"
+          BIN="target/release/rusty-vault"
+          "$BIN" --vault "$VAULT_FILE" init
+          "$BIN" --vault "$VAULT_FILE" add site --username alice --password s3cr3t --url https://example.com --notes hello
+          "$BIN" --vault "$VAULT_FILE" get site | tee /tmp/get.txt
+          grep -F "username:" /tmp/get.txt
+          grep -F "password:" /tmp/get.txt
+          "$BIN" --vault "$VAULT_FILE" list | tee /tmp/list1.txt
+          grep -F "site" /tmp/list1.txt
+          "$BIN" --vault "$VAULT_FILE" delete site
+          "$BIN" --vault "$VAULT_FILE" list | tee /tmp/list2.txt
+          if grep -F "site" /tmp/list2.txt; then echo "delete did not remove entry" && exit 1; fi
+
+      - name: Smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:RUSTY_VAULT_MASTER_PASSWORD = "test-master"
+          $vault = Join-Path $env:TEMP "vault.json"
+          $bin = "target/release/rusty-vault.exe"
+          & $bin --vault $vault init
+          & $bin --vault $vault add site --username alice --password s3cr3t --url https://example.com --notes hello | Out-Null
+          & $bin --vault $vault get site | Tee-Object -FilePath $env:TEMP\get.txt | Out-String | Out-Null
+          Select-String -Path $env:TEMP\get.txt -Pattern "username:" | Out-Null
+          Select-String -Path $env:TEMP\get.txt -Pattern "password:" | Out-Null
+          & $bin --vault $vault list | Tee-Object -FilePath $env:TEMP\list1.txt | Out-String | Out-Null
+          Select-String -Path $env:TEMP\list1.txt -Pattern "site" | Out-Null
+          & $bin --vault $vault delete site
+          & $bin --vault $vault list | Tee-Object -FilePath $env:TEMP\list2.txt | Out-String | Out-Null
+          if (Select-String -Path $env:TEMP\list2.txt -Pattern "site" -Quiet) { throw "delete did not remove entry" }

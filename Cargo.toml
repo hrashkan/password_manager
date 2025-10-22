@@ -1,0 +1,24 @@
+[package]
+name = "password_manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+aes-gcm = { version = "0.10", features = ["aes"] }
+argon2 = "0.5"
+rand = "0.8"
+rpassword = "7.3"
+zeroize = { version = "1.6", features = ["zeroize_derive"] }
+base64 = "0.22"
+anyhow = "1.0"
+dirs = "5.0"
+colored = "2.1"
+is-terminal = "0.4"
+inquire = "0.6"
+
+[[bin]]
+name = "rusty-vault"
+path = "src/main.rs"
