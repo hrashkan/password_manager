@@ -45,6 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export NO_COLOR=1
           VAULT_DIR="$(mktemp -d)"
           VAULT_FILE="$VAULT_DIR/vault.json"
           export RUSTY_VAULT_MASTER_PASSWORD="test-master"
@@ -64,6 +65,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          $env:NO_COLOR = '1'
           $env:RUSTY_VAULT_MASTER_PASSWORD = "test-master"
           $vault = Join-Path $env:TEMP "vault.json"
           $bin = "target/release/rusty-vault.exe"
