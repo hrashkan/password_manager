@@ -5,6 +5,9 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build (${{ matrix.os }})
@@ -32,7 +35,10 @@ jobs:
           cargo install cargo-deb --locked
           # Reuse previous build artifacts
           cargo deb --no-build
-          echo "DEB=$(ls target/debian/*.deb | head -n1)" >> $GITHUB_ENV
+          DEB_PATH=$(ls target/debian/*.deb | head -n1)
+          DEB_NAME=$(basename "$DEB_PATH")
+          echo "DEB=$DEB_NAME" >> $GITHUB_ENV
+          echo "DEB_PATH=$DEB_PATH" >> $GITHUB_ENV
 
       - name: Package
         shell: bash
@@ -70,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB }}
-          path: ${{ env.DEB }}
+          path: ${{ env.DEB_PATH }}
 
   publish:
     needs: build
@@ -85,6 +91,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: dist/**
+          files: dist/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
