@@ -65,17 +65,23 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
           $env:NO_COLOR = '1'
-          $env:RUSTY_VAULT_MASTER_PASSWORD = "test-master"
-          $vault = Join-Path $env:TEMP "vault.json"
-          $bin = "target/release/rusty-vault.exe"
-          & $bin --vault $vault init
-          & $bin --vault $vault add site --username alice --password s3cr3t --url https://example.com --notes hello | Out-Null
-          & $bin --vault $vault get site | Tee-Object -FilePath $env:TEMP\get.txt | Out-String | Out-Null
-          Select-String -Path $env:TEMP\get.txt -Pattern "username:" | Out-Null
-          Select-String -Path $env:TEMP\get.txt -Pattern "password:" | Out-Null
-          & $bin --vault $vault list | Tee-Object -FilePath $env:TEMP\list1.txt | Out-String | Out-Null
-          Select-String -Path $env:TEMP\list1.txt -Pattern "site" | Out-Null
-          & $bin --vault $vault delete site
-          & $bin --vault $vault list | Tee-Object -FilePath $env:TEMP\list2.txt | Out-String | Out-Null
-          if (Select-String -Path $env:TEMP\list2.txt -Pattern "site" -Quiet) { throw "delete did not remove entry" }
+          $env:RUSTY_VAULT_MASTER_PASSWORD = 'test-master'
+          $vault = Join-Path $env:TEMP 'vault.json'
+          $bin = 'target/release/rusty-vault.exe'
+
+          & $bin --vault $vault init | Out-Null
+          & $bin --vault $vault add site --username alice --password s3cr3t --url 'https://example.com' --notes 'hello' | Out-Null
+
+          $out = (& $bin --vault $vault get site | Out-String)
+          if ($out -notmatch 'username:' -or $out -notmatch 'password:') { throw 'get output missing expected fields' }
+
+          $list1 = (& $bin --vault $vault list | Out-String)
+          if ($list1 -notmatch '^site\s*$') { throw 'list does not contain expected entry' }
+
+          & $bin --vault $vault delete site | Out-Null
+
+          $list2 = (& $bin --vault $vault list | Out-String)
+          if ($list2 -match 'site') { throw 'delete did not remove entry' }
