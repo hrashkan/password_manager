@@ -2,6 +2,27 @@
 
 A small local, encrypted password manager CLI written in Rust.
 
+### Quick install
+
+- Ubuntu/Debian (.deb): download from the Releases page and install:
+
+```bash
+cd ~/Downloads
+sudo apt install -y ./password-manager_0.1.0-1_amd64.deb
+```
+
+- Linux/macOS (tar.gz): download the tarball, extract, and place on PATH:
+
+```bash
+cd ~/Downloads
+tar xf rusty-vault-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+sudo install -m 0755 rusty-vault /usr/local/bin/rusty-vault
+```
+
+- Windows (zip): download the zip, extract, and add the folder to PATH.
+
+- Releases: https://github.com/hrashkan/password_manager/releases
+
 ### Build
 
 - Prerequisites: Rust toolchain (stable). Install via [`https://rustup.rs`](https://rustup.rs).
