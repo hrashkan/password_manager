@@ -1,1 +1,37 @@
+# Rust build artifacts
 /target
+**/*.rs.bk
+*.pdb
+
+# Cargo (keep Cargo.lock for binaries)
+.cargo/
+
+# Build outputs (dist/ is included in repo for releases)
+# *.deb
+# *.AppImage
+# *.zip
+# *.tar.gz
+# *.dmg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# AppImage build directory
+*.AppDir
+
+# Local test files
+test_vault.json
+rusty_vault.json

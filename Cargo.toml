@@ -2,6 +2,10 @@
 name = "password_manager"
 version = "0.1.0"
 edition = "2024"
+description = "A small local, encrypted password manager CLI written in Rust"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+repository = "https://github.com/hrashkan/password_manager"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -22,3 +26,19 @@ inquire = "0.6"
 [[bin]]
 name = "rusty-vault"
 path = "src/main.rs"
+
+[package.metadata.deb]
+maintainer = "Your Name <your.email@example.com>"
+copyright = "2024, MIT"
+license-file = ["LICENSE", "0"]
+extended-description = """\
+A small local, encrypted password manager CLI written in Rust.
+Features:
+- AES-256-GCM encryption
+- Argon2 key derivation
+- Secure password storage
+- Cross-platform support
+"""
+section = "utils"
+priority = "optional"
+depends = "$auto"
